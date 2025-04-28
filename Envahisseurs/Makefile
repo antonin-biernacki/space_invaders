@@ -2,7 +2,7 @@
 
 TARGET= project
 CFLAGS=-g -W -Wall -Wextra
-LDFLAGS= -LGraphique
+LDFLAGS= -LGraphique -LListeChainee
 LDLIBS= -lgraph -lSDL -lSDL_ttf
 
 default: $(TARGET)
