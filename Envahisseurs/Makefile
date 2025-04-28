@@ -1,0 +1,24 @@
+# Makefile for project S5
+
+TARGET= project
+CFLAGS=-g -W -Wall -Wextra
+LDFLAGS= -LGraphique
+LDLIBS= -lgraph -lSDL -lSDL_ttf
+
+default: $(TARGET)
+
+main.o: main.c
+	gcc $(CFLAGS) -c main.c
+
+
+$(TARGET): main.o
+	gcc $(LDFLAGS)  main.o $(LDLIBS) -o $(TARGET)
+
+
+.PHONY: clean
+
+clean:
+	rm -f *.o
+	rm -f $(TARGET)
+
+
