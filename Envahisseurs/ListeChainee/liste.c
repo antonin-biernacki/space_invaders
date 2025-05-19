@@ -45,6 +45,16 @@ void deleteHead(listeEntites* l) {
 
 
 
+void deleteAfter(listeEntites l) {
+	if (l == NULL || l->next == NULL) return;
+	listeEntites next = l->next;
+	l->next = next->next;
+	free(next);
+}
+
+
+
+
 void freeList(listeEntites l) {
     while (l != NULL) {
         deleteHead(&l);
