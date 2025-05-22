@@ -4,12 +4,12 @@
 #include <stdlib.h>
 
 
-#define LONGUEUR 1280
-#define LARGEUR 800
+#define LONGUEUR 1280 //1280
+#define LARGEUR 600 //800
 #define DELAI_MISSILE 10 // delai entre 2 missiles
 
 
-/* Gestion des liste d'entite*/
+/* Gestion des listes d'entites */
 
 void creer_ligne_mechant(listeEntites* l, int y, int sprite) {
 	int longueur, largeur;
@@ -23,50 +23,79 @@ void creer_ligne_mechant(listeEntites* l, int y, int sprite) {
 
 
 
-void mvt_droite(listeEntites* l, int* direction) {	
+void creer2(listeEntites* l, int y, int sprite, int tempo) {
 	int longueur, largeur;
-	tailleLutin((*l)->val.sprite, &longueur, &largeur);
+	tailleLutin(sprite, &longueur, &largeur);
+	entite e = {0, y, sprite};	
+	if (tempo == 0) {
+		for (int i=0 ; i<11 ; i++) {
+			e.x = 2*i*longueur;
+			addHead(e, l);
+		}
+	} else {
+		for (int i=0 ; i<12 ; i++) {
+			e.x = 2*i*(longueur+1.8);
+			addHead(e, l);
+		}
+	}
+}
 
-	if (*l != NULL && (*l)->val.x <= (LONGUEUR-longueur)) {
-		listeEntites p = *l;
+
+
+void descendre_invaders(listeEntites* l) {
+	listeEntites p = *l;
+	while (p != NULL) {
+		p->val.y += 20;
+		p = p->next;
+	}
+
+}
+
+
+
+void mvt_droite(listeEntites* l1, listeEntites* l2, listeEntites* l3, int* direction) {	
+	int longueur, largeur;
+	tailleLutin((*l1)->val.sprite, &longueur, &largeur);
+
+	if (*l1 != NULL && (*l1)->val.x <= (LONGUEUR-longueur)) {
+		listeEntites p = *l1;
 		while (p != NULL) {
 			p->val.x += 5;
 			p = p->next;
 		}
  	} else {
-		*direction = -1;
-		listeEntites p = *l;
-		while (p != NULL) {
-			p->val.y += largeur;
-			p = p->next;
+		if (*direction == -1) {
+			descendre_invaders(l1);
+			descendre_invaders(l2);
+			descendre_invaders(l3);
 		}
+		*direction = -1;
 	}	
 }
 
 
 
-void mvt_gauche(listeEntites* l, int* direction) {	
+void mvt_gauche(listeEntites* l1, listeEntites* l2, listeEntites* l3, int* direction) {	
 	int longueur, largeur;
-	tailleLutin((*l)->val.sprite, &longueur, &largeur);
+	tailleLutin((*l1)->val.sprite, &longueur, &largeur);
 
-	listeEntites h = *l;
+	listeEntites h = *l1;
 	while(h != NULL && h->next != NULL) {
 		h = h->next;
 	}
 	if (h->val.x >= 0) {
-		listeEntites p = *l;
+		listeEntites p = *l1;
 		while (p != NULL) {
 			p->val.x -= 5;
 			p = p->next;
 		}
  	} else {
-		*direction = 1;
-		listeEntites p = *l;
-		while (p != NULL) {
-			p->val.y += largeur;
-			p = p->next;
+		if (*direction == 1) { 
+			descendre_invaders(l1);
+			descendre_invaders(l2);
+			descendre_invaders(l3);
 		}
-
+		*direction = 1;
 	}	
 }
 
@@ -140,7 +169,7 @@ void deplacer_joueur(evenement evt, char touche, entite* e) {
 	}
 }
 
-/* Gestion collision */
+/* Gestion collisions */
 
 int collision_entite_entite(entite e1, entite e2) {
 	int longueur1, largeur1, longueur2, largeur2;
@@ -224,38 +253,57 @@ int main() {
 	// Chargement des lutins
 	int monstre_1_1 = chargerLutin("Lutins/invader_monstre1_1.bmp", COULEUR_NOIR);
 	//int monstre_1_2 = chargerLutin("Lutins/invader_monstre1_2.bmp", COULEUR_NOIR);
-	//int monstre_2_1 = chargerLutin("Lutins/invader_monstre2_1.bmp", COULEUR_NOIR);
+	int monstre_2_1 = chargerLutin("Lutins/invader_monstre2_1.bmp", COULEUR_NOIR);
 	//int monstre_2_2 = chargerLutin("Lutins/invader_monstre2_2.bmp", COULEUR_NOIR);
-	//int monstre_3_1 = chargerLutin("Lutins/invader_monstre3_1.bmp", COULEUR_NOIR);
+	int monstre_3_1 = chargerLutin("Lutins/invader_monstre3_1.bmp", COULEUR_NOIR);
 	//int monstre_3_2 = chargerLutin("Lutins/invader_monstre3_2.bmp", COULEUR_NOIR);
 	int canon = chargerLutin("Lutins/invader_canon.bmp", COULEUR_NOIR);
 	int bombe = chargerLutin("Lutins/invader_bombe.bmp", COULEUR_NOIR);
 	int missile = chargerLutin("Lutins/invader_missile.bmp", COULEUR_NOIR);
 	
 	// Initialisation
-	listeEntites listeMechant = NULL;
+	listeEntites listeMechant1 = NULL;
+	listeEntites listeMechant2 = NULL;
+	listeEntites listeMechant3 = NULL;
 	listeEntites listeBombe = NULL;
 	listeEntites listeMissile = NULL;
 	entite joueur = {LONGUEUR / 2, LARGEUR - 100, canon};
 	
-	creer_ligne_mechant(&listeMechant, 0, monstre_1_1);
+	//creer_ligne_mechant(&listeMechant1, 0, monstre_1_1);
+	//creer_ligne_mechant(&listeMechant2, 50, monstre_2_1);
+	//creer_ligne_mechant(&listeMechant3, 100, monstre_3_1);
+
+	creer2(&listeMechant1, 0, monstre_1_1, 1);
+	creer2(&listeMechant2, 50, monstre_2_1, 0);
+	creer2(&listeMechant3, 100, monstre_3_1, 0);
+
 	int direction = 1; // Permet de savoir dans quel sens se deplace les invaders
 	evenement evt;
 	char touche;
 	int jouer = 1; // Permet de savoir si le jeu est fini ou quitter
 	int delai = 0; // Permet de gerer le delai entre 2 missiles
 
-	afficher_liste(listeMechant);
+	afficher_liste(listeMechant1);
+	afficher_liste(listeMechant2);
+	afficher_liste(listeMechant3);
 	afficher_joueur(joueur);
 	majSurface();
 	SDL_Delay(1000);
 
 
-	while (jouer) {
-		rectanglePlein(0, 0, 1280, 800, COULEUR_NOIR);
+	while (jouer && listeMechant1 != NULL && listeMechant2 != NULL && listeMechant3 != NULL) {
+		rectanglePlein(0, 0, LONGUEUR, LARGEUR, COULEUR_NOIR);
 
-		if (direction == 1) mvt_droite(&listeMechant, &direction);
-		else mvt_gauche(&listeMechant, &direction);
+		if (direction == 1) {
+		       	mvt_droite(&listeMechant1, &listeMechant2, &listeMechant3, &direction);
+			mvt_droite(&listeMechant2, &listeMechant1 ,&listeMechant3, &direction);
+			mvt_droite(&listeMechant3, &listeMechant1, &listeMechant2, &direction);
+
+		} else {
+			mvt_gauche(&listeMechant1, &listeMechant2, &listeMechant3, &direction);
+			mvt_gauche(&listeMechant2, &listeMechant1, &listeMechant3, &direction);
+			mvt_gauche(&listeMechant3, &listeMechant1, &listeMechant2, &direction);
+		}
 
 		deplacer_bombe(&listeBombe);
 		deplacer_missile(&listeMissile);
@@ -264,15 +312,19 @@ int main() {
 		jouer = quitter_jeu(evt);
 
 		deplacer_joueur(evt, touche, &joueur);
-		ajouter_bombe(listeMechant, &listeBombe, bombe);
+		ajouter_bombe(listeMechant3, &listeBombe, bombe);
 		ajouter_missile(evt, touche, &listeMissile, joueur, missile, &delai);
 
 		collision_entite_liste(&listeBombe, joueur);
-		collision_liste_liste(&listeMechant, &listeMissile);
+		collision_liste_liste(&listeMechant1, &listeMissile);
+		collision_liste_liste(&listeMechant2, &listeMissile);
+		collision_liste_liste(&listeMechant3, &listeMissile);
 
 
 
-		afficher_liste(listeMechant);
+		afficher_liste(listeMechant1);
+		afficher_liste(listeMechant2);
+		afficher_liste(listeMechant3);
 		afficher_liste(listeBombe);
 		afficher_liste(listeMissile);
 		afficher_joueur(joueur);
