@@ -231,6 +231,14 @@ int quitter_jeu(evenement evt) {
 
 
 
+void mettre_pause(evenement evt, char touche, int* pause) {
+	if (evt == toucheBas && touche == 'p') {
+		*pause = !(*pause);
+	}
+}
+
+
+
 int perdre(listeEntites* l1, listeEntites* l2, listeEntites* l3, entite joueur) {
 	if ((collision_entite_liste(l1, joueur)) || (collision_entite_liste(l2, joueur)) || (collision_entite_liste(l3, joueur))) {
 		return 0;
@@ -251,6 +259,42 @@ int gagner(listeEntites l1, listeEntites l2, listeEntites l3) {
 	return !(l1 == NULL && l2 == NULL && l3 == NULL);
 }
 
+
+
+void initialisation_mechant(listeEntites* l1, listeEntites* l2, listeEntites* l3, int sprite1, int sprite2, int sprite3) {
+	*l1 = NULL;
+	*l2 = NULL;
+	*l3 = NULL;
+	
+	creer_ligne_mechant(l1, 50, sprite1, 1);
+	creer_ligne_mechant(l2, 100, sprite2, 0);
+	creer_ligne_mechant(l3, 150, sprite3, 0);
+}
+
+
+
+void initialisation_joueur_var(entite* joueur, int canon, int* gagne, int* perdu, int* nb_vie, int* direction) {
+	(*joueur).x = LONGUEUR / 2 - 40;
+	(*joueur).y = LARGEUR - 100;
+	(*joueur).sprite = canon;
+
+	*gagne = 1;
+	*perdu = 1;
+	*nb_vie = 3;
+	*direction = 1;
+}
+
+
+
+void initialisation_bombe_missile_bouclier(listeEntites* lBom, listeEntites* lM, listeEntites* lBou, int bouclier) {
+	*lBom = NULL;
+	*lM = NULL;
+	*lBou = NULL;
+
+	creer_ligne_bouclier(lBou, LARGEUR-180, bouclier);
+}
+
+
 /* Affichage */
 
 void afficher_liste(listeEntites l) {
@@ -262,8 +306,8 @@ void afficher_liste(listeEntites l) {
 
 
 
-void afficher_joueur (entite e) {
-	afficherLutin(e.sprite, e.x, e.y);
+void afficher_joueur (entite e, int sprite) {
+	afficherLutin(sprite, e.x, e.y);
 }
 
 
@@ -290,12 +334,10 @@ int main() {
 
 	// Chargement des lutins
 	int monstre_1_1 = chargerLutin("Lutins/invader_monstre1_1.bmp", COULEUR_NOIR);
-	//int monstre_1_2 = chargerLutin("Lutins/invader_monstre1_2.bmp", COULEUR_NOIR);
 	int monstre_2_1 = chargerLutin("Lutins/invader_monstre2_1.bmp", COULEUR_NOIR);
-	//int monstre_2_2 = chargerLutin("Lutins/invader_monstre2_2.bmp", COULEUR_NOIR);
-	int monstre_3_1 = chargerLutin("Lutins/invader_monstre3_1.bmp", COULEUR_NOIR);
-	//int monstre_3_2 = chargerLutin("Lutins/invader_monstre3_2.bmp", COULEUR_NOIR);
+	int monstre_3_1 = chargerLutin("Lutins/invader_monstre3_1.bmp", COULEUR_NOIR);	
 	int canon = chargerLutin("Lutins/invader_canon.bmp", COULEUR_NOIR);
+	int canon_mort = chargerLutin("Lutins/invader_canon_ferraille.bmp", COULEUR_NOIR);
 	int bouclier = chargerLutin("Lutins/invader_bouclier.bmp", COULEUR_NOIR);
 	int bombe = chargerLutin("Lutins/invader_bombe.bmp", COULEUR_NOIR);
 	int missile = chargerLutin("Lutins/invader_missile.bmp", COULEUR_NOIR);
@@ -305,6 +347,7 @@ int main() {
 	int vie3 = lutinTexte("3", COULEUR_BLANC);
 	int victoire = lutinTexte("gg", COULEUR_BLANC);
 	int defaite = lutinTexte("nul", COULEUR_BLANC);
+	int information = lutinTexte("Appuyez sur r pour rejouer", COULEUR_BLANC);
 
 
 	
@@ -315,37 +358,32 @@ int main() {
 	listeEntites listeBombe = NULL;
 	listeEntites listeMissile = NULL;
 	listeEntites listeBouclier = NULL;
-	entite joueur = {LONGUEUR / 2 - 40, LARGEUR - 100, canon};
+	entite joueur;	
 	
-	creer_ligne_mechant(&listeMechant1, 50, monstre_1_1, 1);
-	creer_ligne_mechant(&listeMechant2, 100, monstre_2_1, 0);
-	creer_ligne_mechant(&listeMechant3, 150, monstre_3_1, 0);
-	creer_ligne_bouclier(&listeBouclier, LARGEUR-180, bouclier);
 
-	int direction = 1; // Permet de savoir dans quel sens se deplace les invaders
+	int direction; // Permet de savoir dans quel sens se deplace les invaders
 	evenement evt;
 	char touche;
 	int jouer = 1; // Permet de savoir si le jeu est fini ou quitter
-	int perdu = 1;
-	int gagne = 1;
+	int perdu;
+	int gagne;
 	int delai = 0; // Permet de gerer le delai entre 2 missiles
-	int nb_vie = 3;
+	int nb_vie;
+	int pause = 1;
 
-	afficher_liste(listeMechant1);
-	afficher_liste(listeMechant2);
-	afficher_liste(listeMechant3);
-	afficher_joueur(joueur);
-	majSurface();
-	SDL_Delay(1000);
+	initialisation_mechant(&listeMechant1, &listeMechant2, &listeMechant3, monstre_1_1, monstre_2_1, monstre_3_1);
+	initialisation_bombe_missile_bouclier(&listeBombe, &listeMissile, &listeBouclier, bouclier);
+	initialisation_joueur_var(&joueur, canon, &gagne, &perdu, &nb_vie, &direction);
 
 
 	while (jouer) {
 		rectanglePlein(0, 0, LONGUEUR, LARGEUR, COULEUR_NOIR);
 		lireEvenement(&evt, &touche, NULL);
 		jouer = quitter_jeu(evt);
+		mettre_pause(evt, touche, &pause);
 
 
-		if (perdu && gagne && nb_vie > 0) {	
+		if (perdu && gagne && nb_vie > 0 && pause) {	
 			if (direction == 1) {
 		       		mvt_droite(&listeMechant1, &listeMechant2, &listeMechant3, &direction);
 				mvt_droite(&listeMechant2, &listeMechant1 ,&listeMechant3, &direction);
@@ -375,26 +413,39 @@ int main() {
 			collision_liste_liste(&listeBouclier, &listeMissile);
 
 
-
 			perdu = perdre(&listeMechant1, &listeMechant2, &listeMechant3, joueur);
 			gagne = gagner(listeMechant1, listeMechant2, listeMechant3);
+		}
 
 
+		
+		if (perdu && gagne && nb_vie > 0) {
 			afficher_liste(listeMechant1);
 			afficher_liste(listeMechant2);
 			afficher_liste(listeMechant3);
 			afficher_liste(listeBombe);
 			afficher_liste(listeMissile);
-			afficher_liste(listeBouclier);
-			afficher_joueur(joueur);
+			afficher_liste(listeBouclier);	
 			afficher_vie(nb_vie, vies, vie1, vie2, vie3);
 
+			if (perdu && nb_vie > 0) {
+				afficher_joueur(joueur, canon);
+			} else {
+				afficher_joueur(joueur, canon_mort);
+			}
 		} else {
+			afficherLutin(information, LONGUEUR/2, LARGEUR/2+50);		
+
 			if (!gagne) {
 				afficherLutin(victoire, LONGUEUR/2, LARGEUR/2);		
 			}
 			if (!perdu || nb_vie <= 0) {
 				afficherLutin(defaite, LONGUEUR/2, LARGEUR/2);
+			}
+			if (evt == toucheBas && touche == 'r') {
+				initialisation_mechant(&listeMechant1, &listeMechant2, &listeMechant3, monstre_1_1, monstre_2_1, monstre_3_1);
+				initialisation_bombe_missile_bouclier(&listeBombe, &listeMissile, &listeBouclier, bouclier);
+				initialisation_joueur_var(&joueur, canon, &gagne, &perdu, &nb_vie, &direction);
 			}
 		}
 
