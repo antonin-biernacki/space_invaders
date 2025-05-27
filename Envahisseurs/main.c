@@ -1,11 +1,11 @@
 #include "Graphique/libgraph.h"
-#include "ListeChainee/liste.c"
+#include "ListeChainee/liste.h"
 #include <SDL/SDL.h>
 #include <stdlib.h>
 
 
-#define LONGUEUR 1280 //1280
-#define LARGEUR 800 //800
+#define LONGUEUR 1280 
+#define LARGEUR 800 
 #define DELAI_MISSILE 10 // delai entre 2 missiles
 
 
@@ -53,53 +53,37 @@ void descendre_invaders(listeEntites* l) {
 
 
 
-void mvt_droite(listeEntites* l1, listeEntites* l2, listeEntites* l3, int* direction) {	
+void mvt_invaders(listeEntites* l1, listeEntites* l2, listeEntites* l3, int* direction) {	
 	int longueur, largeur;
 	if (*l1 != NULL) {
 		tailleLutin((*l1)->val.sprite, &longueur, &largeur);
+		listeEntites h = *l1;
+		while(h != NULL && h->next != NULL) {
+			h = h->next;
+		}
 
-		if ((*l1)->val.x <= (LONGUEUR-longueur)) {
+
+		if (*direction == 1 && (*l1)->val.x <= (LONGUEUR-longueur)) {
 			listeEntites p = *l1;
 			while (p != NULL) {
 				p->val.x += 2;
 				p = p->next;
 			}
- 		} else {
-			if (*direction == -1) {
-				descendre_invaders(l1);
-				descendre_invaders(l2);
-				descendre_invaders(l3);
-			}
-			*direction = -1;
-		}	
-	}
-}
 
-
-
-void mvt_gauche(listeEntites* l1, listeEntites* l2, listeEntites* l3, int* direction) {	
-	int longueur, largeur;
-	if (*l1 != NULL) {
-		tailleLutin((*l1)->val.sprite, &longueur, &largeur);
-
-		listeEntites h = *l1;
-		while(h != NULL && h->next != NULL) {
-			h = h->next;
-		}
-		if (h->val.x >= 0) {
+		} else if (*direction == 0 && h->val.x >= 0) {
 			listeEntites p = *l1;
 			while (p != NULL) {
 				p->val.x -= 2;
 				p = p->next;
 			}
- 		} else {
-			if (*direction == 1) { 
-				descendre_invaders(l1);
-				descendre_invaders(l2);
-				descendre_invaders(l3);
-			}
-			*direction = 1;
-		}	
+
+		} else {
+			*direction = !(*direction);
+			descendre_invaders(l1);
+			descendre_invaders(l2);
+			descendre_invaders(l3);
+
+		}
 	}
 }
 
@@ -313,7 +297,6 @@ void afficher_vie (int nb_vie, int vies, int vie1, int vie2, int vie3) {
 	}
 }
 
-
 /* Main */
 
 int main() {
@@ -376,16 +359,10 @@ int main() {
 			// Cas ou le jeu n'est pas fini
 			if (pause) {
 				// Cas où le jeu n'est pas en pause
-				if (direction == 1) {
-		       			mvt_droite(&listeMechant1, &listeMechant2, &listeMechant3, &direction);
-					mvt_droite(&listeMechant2, &listeMechant1 ,&listeMechant3, &direction);
-					mvt_droite(&listeMechant3, &listeMechant1, &listeMechant2, &direction);
-
-				} else {
-					mvt_gauche(&listeMechant1, &listeMechant2, &listeMechant3, &direction);
-					mvt_gauche(&listeMechant2, &listeMechant1, &listeMechant3, &direction);
-					mvt_gauche(&listeMechant3, &listeMechant1, &listeMechant2, &direction);
-				}
+				
+		       		mvt_invaders(&listeMechant1, &listeMechant2, &listeMechant3, &direction);
+				mvt_invaders(&listeMechant2, &listeMechant1 ,&listeMechant3, &direction);
+				mvt_invaders(&listeMechant3, &listeMechant1, &listeMechant2, &direction);
 
 				deplacer_bombe(&listeBombe);
 				deplacer_missile(&listeMissile);

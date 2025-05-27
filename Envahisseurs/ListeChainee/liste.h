@@ -23,9 +23,9 @@ void addHead(entite i, listeEntites* l);
 void addAfter(entite i, listeEntites l);
 
 
-void deleteHead(listeEntites* l):
+void deleteHead(listeEntites* l);
 
-void deleteAfter(listeEntites l):
+void deleteAfter(listeEntites l);
 
 
 void freeList(listeEntites l);
