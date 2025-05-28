@@ -1,7 +1,0 @@
-#include "Graphique/libgraph.h"
-
-int main() {
-  char titre[10] = "jeu";
-  creerSurface(10, 10, titre);
-  return 0;
-}

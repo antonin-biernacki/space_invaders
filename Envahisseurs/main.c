@@ -98,10 +98,10 @@ void mvt_invaders(listeEntites* l1, listeEntites* l2, listeEntites* l3, int* dir
 
 void ajouter_bombe(listeEntites l, listeEntites* b, int sprite) {
 	entite e = {0, 0, sprite};
-	int div = 1000;
-	int proba = 0.5;
+	int div = 2000;
+	int proba = 1;
 	while(l != NULL) {
-		if (rand()%div < proba) {  //rand()%1001 < 3	
+		if (rand()%div < proba) {	
 			e.x = l->val.x;
 			e.y = l->val.y;
 			addHead(e, b);
@@ -335,7 +335,7 @@ int main() {
 	int vie1 = lutinTexte("1", COULEUR_BLANC);
 	int vie2 = lutinTexte("2", COULEUR_BLANC);
 	int vie3 = lutinTexte("3", COULEUR_BLANC);
-	int victoire = lutinTexte("Vous avez gane", COULEUR_BLANC);
+	int victoire = lutinTexte("Vous avez gagne", COULEUR_BLANC);
 	int defaite = lutinTexte("Vous avez perdu", COULEUR_BLANC);
 	int information = lutinTexte("Appuyez sur r pour rejouer", COULEUR_BLANC);
 
