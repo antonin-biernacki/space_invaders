@@ -4,25 +4,28 @@
 #include <stdlib.h>
 
 
-#define LONGUEUR 1280 
-#define LARGEUR 800 
+#define LONGUEUR 1280 // taille x de la fenetre 
+#define LARGEUR 800 // taille y de la fenetre
 #define DELAI_MISSILE 10 // delai entre 2 missiles
 
 
 /* Gestion des listes d'entites */
 
 void creer_ligne_mechant(listeEntites* l, int y, int sprite, int petit_sprite) {
-	int longueur, largeur;
+	int longueur, largeur, nb_invaders;
 	tailleLutin(sprite, &longueur, &largeur);
 	entite e = {0, y, sprite};	
 	if (petit_sprite == 0) {
-		for (int i=0 ; i<11 ; i++) {
+		nb_invaders = 11;
+		for (int i=0 ; i<nb_invaders ; i++) {
 			e.x = 2*i*longueur;
 			addHead(e, l);
 		}
 	} else {
-		for (int i=0 ; i<12 ; i++) {
-			e.x = 2*i*(longueur+1.8);
+	nb_invaders = 12;
+	int ajuste_ecart = 1.8;
+		for (int i=0 ; i<nb_invaders ; i++) {
+			e.x = 2*i*(longueur+ajuste_ecart);
 			addHead(e, l);
 		}
 	}
@@ -31,11 +34,13 @@ void creer_ligne_mechant(listeEntites* l, int y, int sprite, int petit_sprite) {
 
 
 void creer_ligne_bouclier(listeEntites* l, int y, int sprite) {
-	int longueur, largeur;
+	int longueur, largeur, nb_bouclier;
 	tailleLutin(sprite, &longueur, &largeur);
 	entite e = {0, y, sprite};
-	for(int i=0 ; i<3 ; i++) {
-		e.x = i*longueur + (i+1)*(LONGUEUR/4-50);
+	nb_bouclier = 3;
+	int distance = 50;
+	for(int i=0 ; i<nb_bouclier ; i++) {
+		e.x = i*longueur + (i+1)*(LONGUEUR/(nb_bouclier+1)-distance);
 		addHead(e, l);
 	}
 }
@@ -44,8 +49,9 @@ void creer_ligne_bouclier(listeEntites* l, int y, int sprite) {
 
 void descendre_invaders(listeEntites* l) {
 	listeEntites p = *l;
+	int distance = 15;
 	while (p != NULL && *l != NULL) {
-		p->val.y += 15;
+		p->val.y += distance;
 		p = p->next;
 	}
 
@@ -55,6 +61,7 @@ void descendre_invaders(listeEntites* l) {
 
 void mvt_invaders(listeEntites* l1, listeEntites* l2, listeEntites* l3, int* direction) {	
 	int longueur, largeur;
+	int distance = 2;
 	if (*l1 != NULL) {
 		tailleLutin((*l1)->val.sprite, &longueur, &largeur);
 		listeEntites h = *l1;
@@ -66,14 +73,14 @@ void mvt_invaders(listeEntites* l1, listeEntites* l2, listeEntites* l3, int* dir
 		if (*direction == 1 && (*l1)->val.x <= (LONGUEUR-longueur)) {
 			listeEntites p = *l1;
 			while (p != NULL) {
-				p->val.x += 2;
+				p->val.x += distance;
 				p = p->next;
 			}
 
 		} else if (*direction == 0 && h->val.x >= 0) {
 			listeEntites p = *l1;
 			while (p != NULL) {
-				p->val.x -= 2;
+				p->val.x -= distance;
 				p = p->next;
 			}
 
@@ -91,8 +98,10 @@ void mvt_invaders(listeEntites* l1, listeEntites* l2, listeEntites* l3, int* dir
 
 void ajouter_bombe(listeEntites l, listeEntites* b, int sprite) {
 	entite e = {0, 0, sprite};
+	int div = 1000;
+	int proba = 0.5;
 	while(l != NULL) {
-		if (rand()%1001 < 1) {  //rand()%1001 < 3	
+		if (rand()%div < proba) {  //rand()%1001 < 3	
 			e.x = l->val.x;
 			e.y = l->val.y;
 			addHead(e, b);
@@ -105,11 +114,12 @@ void ajouter_bombe(listeEntites l, listeEntites* b, int sprite) {
 
 
 void deplacer_bombe(listeEntites* b) {
+	int distance = 5;
 	if (*b != NULL) {
 		if ((*b)->val.y > LARGEUR) {
 			deleteHead(b);
 		} else { 
-			(*b)->val.y += 5;
+			(*b)->val.y += distance;
 			deplacer_bombe(&(*b)->next);
 		}
 	}
@@ -118,10 +128,11 @@ void deplacer_bombe(listeEntites* b) {
 
 
 void ajouter_missile(evenement evt, char touche, listeEntites* missile, entite joueur, int sprite, int* delai) {
+	int ajuste_distance = 4;
 	if (*delai < 0 && evt == toucheBas && touche == 'z') {
 		int longeur, largeur;
 		tailleLutin(joueur.sprite, &longeur, &largeur);
-		entite e = {joueur.x + longeur/2 - 4, joueur.y - largeur/2, sprite};
+		entite e = {joueur.x + longeur/2 - ajuste_distance, joueur.y - largeur/2, sprite};
 		addHead(e, missile);
 		*delai = DELAI_MISSILE;
 	} else {
@@ -132,11 +143,12 @@ void ajouter_missile(evenement evt, char touche, listeEntites* missile, entite j
 
 
 void deplacer_missile(listeEntites* missile) {
+	int distance = 10;
 	if (*missile != NULL) {
 		if ((*missile)->val.y < 0) {
 			deleteHead(missile);
 		} else { 
-			(*missile)->val.y -= 10;
+			(*missile)->val.y -= distance;
 			deplacer_missile(&(*missile)->next);
 		}
 	}
@@ -145,14 +157,14 @@ void deplacer_missile(listeEntites* missile) {
 /* Gestion joueur */
 
 void deplacer_joueur(evenement evt, char touche, entite* e) {
-	int largeur;
-	int hauteur;
+	int distance = 5;
+	int largeur, hauteur;
 	tailleLutin(e->sprite, &largeur, &hauteur);
 	if (evt == toucheBas) {
-		if (touche == 'd' && (e->x)+5 < LONGUEUR-largeur) {
-			e->x += 5;
-		} else if (touche == 'q' && (e->x)-5 > 0) {
-			e->x -=5;
+		if (touche == 'd' && (e->x)+distance < LONGUEUR-largeur) {
+			e->x += distance;
+		} else if (touche == 'q' && (e->x)-distance > 0) {
+			e->x -= distance;
 		}
 	}
 }
@@ -220,13 +232,14 @@ int gagner(listeEntites l1, listeEntites l2, listeEntites l3) {
 
 
 int perdre(listeEntites* l1, listeEntites* l2, listeEntites* l3, entite joueur) {
+	int distance_joueur = 100;
 	if ((collision_entite_liste(l1, joueur)) || (collision_entite_liste(l2, joueur)) || (collision_entite_liste(l3, joueur))) {
 		return 0;
-	} else if (*l1 != NULL && (*l1)->val.y >= LARGEUR-100) {
+	} else if (*l1 != NULL && (*l1)->val.y >= LARGEUR-distance_joueur) {
 	 	return 0;
-	} else if (*l2 != NULL && (*l2)->val.y >= LARGEUR-100) {
+	} else if (*l2 != NULL && (*l2)->val.y >= LARGEUR-distance_joueur) {
 	 	return 0;
-	} else if (*l3 != NULL && (*l3)->val.y >= LARGEUR-100) {
+	} else if (*l3 != NULL && (*l3)->val.y >= LARGEUR-distance_joueur) {
 	 	return 0;
 	} else {
 	      	return 1;
@@ -239,10 +252,11 @@ void initialisation_mechant(listeEntites* l1, listeEntites* l2, listeEntites* l3
 	*l1 = NULL;
 	*l2 = NULL;
 	*l3 = NULL;
+	int y_l1 = 50;
 	
-	creer_ligne_mechant(l1, 50, sprite1, 1);
-	creer_ligne_mechant(l2, 100, sprite2, 0);
-	creer_ligne_mechant(l3, 150, sprite3, 0);
+	creer_ligne_mechant(l1, y_l1, sprite1, 1);
+	creer_ligne_mechant(l2, y_l1*2, sprite2, 0);
+	creer_ligne_mechant(l3, y_l1*3, sprite3, 0);
 }
 
 
@@ -264,8 +278,9 @@ void initialisation_bombe_missile_bouclier(listeEntites* lBom, listeEntites* lM,
 	*lBom = NULL;
 	*lM = NULL;
 	*lBou = NULL;
+	int hauteur_bouclier = 180;
 
-	creer_ligne_bouclier(lBou, LARGEUR-180, bouclier);
+	creer_ligne_bouclier(lBou, LARGEUR-hauteur_bouclier, bouclier);
 }
 
 
@@ -287,13 +302,15 @@ void afficher_joueur (entite e, int sprite) {
 
 
 void afficher_vie (int nb_vie, int vies, int vie1, int vie2, int vie3) {
-	afficherLutin(vies, LONGUEUR/2-100, 0);
+	int taille_texte1 = 100;
+	int taille_texte2 = 80;
+	afficherLutin(vies, LONGUEUR/2-taille_texte1, 0);
 	if (nb_vie == 3) {
-		afficherLutin(vie3, LONGUEUR/2+80, 0);
+		afficherLutin(vie3, LONGUEUR/2+taille_texte2, 0);
 	} else if (nb_vie == 2) {
-		afficherLutin(vie2, LONGUEUR/2+80, 0);
+		afficherLutin(vie2, LONGUEUR/2+taille_texte2, 0);
 	} else {
-		afficherLutin(vie1, LONGUEUR/2+80, 0);
+		afficherLutin(vie1, LONGUEUR/2+taille_texte2, 0);
 	}
 }
 
@@ -318,8 +335,8 @@ int main() {
 	int vie1 = lutinTexte("1", COULEUR_BLANC);
 	int vie2 = lutinTexte("2", COULEUR_BLANC);
 	int vie3 = lutinTexte("3", COULEUR_BLANC);
-	int victoire = lutinTexte("gg", COULEUR_BLANC);
-	int defaite = lutinTexte("nul", COULEUR_BLANC);
+	int victoire = lutinTexte("Vous avez gane", COULEUR_BLANC);
+	int defaite = lutinTexte("Vous avez perdu", COULEUR_BLANC);
 	int information = lutinTexte("Appuyez sur r pour rejouer", COULEUR_BLANC);
 
 
@@ -343,6 +360,11 @@ int main() {
 	int jouer = 1; // Permet de savoir si le jeu est fini ou quitter
 	int delai = 0; // Permet de gerer le delai entre 2 missiles
 	int pause = 1; // Permet de mettre le jeu en pause
+		       //
+	int x_texte1 = 120;
+	int y_texte1 = 50;	
+	int x_texte2 = 80;
+	int y_texte2 = 100;
 
 	initialisation_mechant(&listeMechant1, &listeMechant2, &listeMechant3, monstre_1_1, monstre_2_1, monstre_3_1);
 	initialisation_bombe_missile_bouclier(&listeBombe, &listeMissile, &listeBouclier, bouclier);
@@ -407,15 +429,15 @@ int main() {
 			}
 		} else {
 			// Cas où le jeu est fini
-			afficherLutin(information, LONGUEUR/2, LARGEUR/2+50);		
+			afficherLutin(information, LONGUEUR/2-x_texte1, LARGEUR/2-y_texte1);		
 
 			if (!gagne) {
 				// Cas où le joueur a gagné
-				afficherLutin(victoire, LONGUEUR/2, LARGEUR/2);		
+				afficherLutin(victoire, LONGUEUR/2-x_texte2, LARGEUR/2-y_texte2);		
 			}
 			if (!perdu || nb_vie <= 0) {
 				// Cas où le joueur a perdu
-				afficherLutin(defaite, LONGUEUR/2, LARGEUR/2);
+				afficherLutin(defaite, LONGUEUR/2-x_texte2, LARGEUR/2-y_texte2);
 			}
 			if (touche == 'r') {
 				// Cas où le joueur veut rejouer
