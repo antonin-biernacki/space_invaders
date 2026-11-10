@@ -1,0 +1,16 @@
+# Compilation
+*.o
+*.d
+*.a
+space_invaders
+
+# Fichiers de crash
+core
+core.*
+
+# Éditeurs et système
+*.swp
+*~
+.vscode/
+.idea/
+.DS_Store
