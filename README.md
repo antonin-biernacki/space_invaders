@@ -10,7 +10,6 @@ Reproduction du jeu d'arcade **Space Invaders** en **C**, avec la bibliothèque 
 - [Commandes](#commandes)
 - [Règles du jeu](#règles-du-jeu)
 - [Structure du projet](#structure-du-projet)
-- [Crédits](#crédits)
 
 ## Fonctionnalités
 
